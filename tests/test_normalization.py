@@ -1,9 +1,13 @@
 import datetime
 import pytest
 from src.core.normalization import (
+    extract_address_components,
     extract_initials,
     name_fingerprint,
+    normalize_address,
     normalize_attribute_value,
+    normalize_business_name,
+    normalize_city,
     normalize_text,
     soundex,
     strip_punctuation,
@@ -108,3 +112,64 @@ def test_normalize_attribute_value():
     # Collections
     assert normalize_attribute_value(["apple", "banana"]) == "apple,banana"
     assert normalize_attribute_value({"b": 2, "a": 1}) == "a:1;b:2"
+
+
+def test_normalize_address():
+    # Street abbreviations: blv. vs blvd. vs boulevard -> canonical boulevard
+    assert normalize_address("100 Sunset Blv.") == "100 sunset boulevard"
+    assert normalize_address("100 Sunset Boulevard") == "100 sunset boulevard"
+    assert normalize_address("500 S. Michigan Ave.") == "500 south michigan avenue"
+    assert normalize_address("500 South Michigan Avenue") == "500 south michigan avenue"
+    assert normalize_address("123 N. Main St.") == "123 north main street"
+    assert normalize_address("123 North Main Street") == "123 north main street"
+    # Ordinal street numbers
+    assert normalize_address("200 Fifth Avenue") == "200 5th avenue"
+    assert normalize_address("200 5th Ave.") == "200 5th avenue"
+    # Cross street clauses stripped
+    assert normalize_address("100 5th Ave between 90th and 91st sts.") == "100 5th avenue"
+    assert normalize_address("450 W. 42nd St at 10th Ave") == "450 west 42nd street"
+    # Edge cases
+    assert normalize_address("") == ""
+    assert normalize_address(None) == ""
+
+
+def test_extract_address_components():
+    num, st = extract_address_components("100 sunset blvd")
+    assert num == "100"
+    assert st == "sunset boulevard"
+
+    num, st = extract_address_components("3434 peachtree rd ne")
+    assert num == "3434"
+    assert st == "peachtree road northeast"
+
+    # No number
+    num, st = extract_address_components("broadway")
+    assert num is None
+    assert st == "broadway"
+
+    # Empty
+    assert extract_address_components("") == (None, "")
+    assert extract_address_components(None) == (None, "")
+
+
+def test_normalize_city():
+    assert normalize_city("New York City") == "new york"
+    assert normalize_city("NYC") == "new york"
+    assert normalize_city("N.Y.C.") == "new york"
+    assert normalize_city("Washington, D.C.") == "washington dc"
+    assert normalize_city("Washington DC") == "washington dc"
+    assert normalize_city("Los Angeles, CA") == "los angeles"
+    assert normalize_city("") == ""
+    assert normalize_city(None) == ""
+
+
+def test_normalize_business_name():
+    # Parenthetical qualifier stripping
+    assert normalize_business_name("Ritz-Carlton (Buckhead)") == "ritz carlton"
+    assert normalize_business_name("Art's Delicatessen (Los Angeles)") == "arts deli"
+    assert normalize_business_name("Art's Deli") == "arts deli"
+    # Business abbreviation canonicalization
+    assert normalize_business_name("Smith & Jones Co., Inc.") == "smith jones co inc"
+    assert normalize_business_name("International Restaurant") == "international restaurant"
+    assert normalize_business_name("") == ""
+    assert normalize_business_name(None) == ""

@@ -22,7 +22,7 @@ Design & Normalization Principles:
 from datetime import date, datetime
 import re
 import string
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Mapping, Optional, Set, Tuple
 import unicodedata
 
 
@@ -233,3 +233,191 @@ def normalize_attribute_value(val: Any) -> str:
         return ";".join(pairs)
 
     return normalize_text(str(val))
+
+
+# ---------------------------------------------------------------------------
+# Structured Address, City & Business Name Normalization
+# ---------------------------------------------------------------------------
+
+STREET_TYPE_MAP: Mapping[str, str] = {
+    "blv": "boulevard",
+    "blvd": "boulevard",
+    "bldv": "boulevard",
+    "bvd": "boulevard",
+    "st": "street",
+    "str": "street",
+    "sts": "streets",
+    "ave": "avenue",
+    "av": "avenue",
+    "rd": "road",
+    "dr": "drive",
+    "ln": "lane",
+    "ct": "court",
+    "pl": "place",
+    "pkwy": "parkway",
+    "pky": "parkway",
+    "hwy": "highway",
+    "ste": "suite",
+    "suite": "suite",
+    "fl": "floor",
+    "floor": "floor",
+    "bldg": "building",
+    "apt": "apartment",
+    "cir": "circle",
+    "ter": "terrace",
+    "terr": "terrace",
+    "sq": "square",
+    "way": "way",
+    "aly": "alley",
+    "alley": "alley",
+    "plaza": "plaza",
+    "plz": "plaza",
+}
+
+DIRECTIONAL_MAP: Mapping[str, str] = {
+    "n": "north",
+    "s": "south",
+    "e": "east",
+    "w": "west",
+    "ne": "northeast",
+    "nw": "northwest",
+    "se": "southeast",
+    "sw": "southwest",
+}
+
+ORDINAL_WORD_MAP: Mapping[str, str] = {
+    "first": "1st",
+    "second": "2nd",
+    "third": "3rd",
+    "fourth": "4th",
+    "fifth": "5th",
+    "sixth": "6th",
+    "seventh": "7th",
+    "eighth": "8th",
+    "ninth": "9th",
+    "tenth": "10th",
+}
+
+BUSINESS_ABBREVIATIONS: Mapping[str, str] = {
+    "delicatessen": "deli",
+    "delis": "deli",
+    "co": "co",
+    "corp": "corp",
+    "inc": "inc",
+    "ltd": "ltd",
+    "intl": "international",
+    "dept": "department",
+    "univ": "university",
+    "mgmt": "management",
+    "assn": "association",
+    "assoc": "associates",
+    "bros": "brothers",
+    "rest": "restaurant",
+    "bbq": "barbecue",
+}
+
+_CROSS_STREET_PATTERN = re.compile(
+    r"\s+\b(between|near|off|at|corner\s+of|b/w)\b\s+.*$", re.IGNORECASE
+)
+_PAREN_LOCATION_PATTERN = re.compile(r"\s*\([^)]*\)\s*")
+_POSSESSIVE_PATTERN = re.compile(r"\b([a-zA-Z0-9]+)'s\b")
+
+
+def normalize_address(text: Optional[str]) -> str:
+    """
+    Normalizes street addresses into canonical representation:
+    - Strips auxiliary cross-street clauses (e.g. 'between 90th and 91st sts.', 'near hudson st.').
+    - Standardizes directional abbreviations (e.g. 'n.' -> 'north', 'w.' -> 'west').
+    - Standardizes street types (e.g. 'blv.', 'blvd.' -> 'boulevard', 'ave.' -> 'avenue').
+    - Standardizes spelled-out ordinal street names ('seventh' -> '7th', 'fifth' -> '5th').
+    - Strips punctuation, collapses whitespace, applies Unicode NFKC case-folding.
+    """
+    if not text:
+        return ""
+    norm = normalize_text(text)
+    # Strip cross street clause
+    norm = _CROSS_STREET_PATTERN.sub("", norm)
+    # Tokenize preserving alphanumeric
+    tokens = strip_punctuation(norm, replace_with_space=True).split()
+    res: List[str] = []
+    for tok in tokens:
+        if tok in DIRECTIONAL_MAP:
+            res.append(DIRECTIONAL_MAP[tok])
+        elif tok in STREET_TYPE_MAP:
+            res.append(STREET_TYPE_MAP[tok])
+        elif tok in ORDINAL_WORD_MAP:
+            res.append(ORDINAL_WORD_MAP[tok])
+        else:
+            res.append(tok)
+    return " ".join(res)
+
+
+def extract_address_components(text: Optional[str]) -> Tuple[Optional[str], Optional[str]]:
+    """
+    Extracts leading building/street number and street name from normalized address.
+    Example: '435 south la cienega boulevard' -> ('435', 'south la cienega boulevard')
+    """
+    norm = normalize_address(text)
+    if not norm:
+        return None, ""
+    tokens = norm.split()
+    if tokens and tokens[0].isdigit():
+        return tokens[0], " ".join(tokens[1:])
+    return None, norm
+
+
+_US_STATE_CODES = {
+    "ca", "ny", "ga", "il", "fl", "tx", "pa", "oh", "mi", "nc", "nj", "va", "wa", "az",
+    "ma", "tn", "in", "mo", "md", "wi", "co", "mn", "sc", "al", "la", "ky", "or", "ok",
+    "ct", "ut", "ia", "nv", "ar", "ms", "ks", "nm", "ne", "wv", "id", "hi", "nh", "me",
+    "mt", "ri", "de", "sd", "nd", "ak", "dc", "vt", "wy",
+}
+
+
+def normalize_city(text: Optional[str]) -> str:
+    """
+    Normalizes city/municipality values:
+    - Expands cardinal directions (e.g. 'w. hollywood' -> 'west hollywood').
+    - Canonicalizes common metropolitan abbreviations (e.g. 'new york city', 'nyc', 'n.y.c.' -> 'new york').
+    - Standardizes 'st. louis' -> 'saint louis', 'dc' -> 'washington dc'.
+    - Strips trailing state postal codes (e.g. 'los angeles, ca' -> 'los angeles').
+    """
+    if not text:
+        return ""
+    raw = normalize_text(text)
+    compact = strip_punctuation(raw, replace_with_space=False)
+    if compact in ("nyc", "ny", "newyork", "newyorkcity"):
+        return "new york"
+    if compact in ("dc", "washingtondc", "washdc"):
+        return "washington dc"
+
+    norm = strip_punctuation(raw, replace_with_space=True)
+    tokens = norm.split()
+    if len(tokens) > 1 and tokens[-1] in _US_STATE_CODES:
+        tokens = tokens[:-1]
+    expanded = [DIRECTIONAL_MAP.get(t, t) for t in tokens]
+    c = " ".join(expanded)
+    if c in ("new york city", "nyc", "ny", "new york", "n y c"):
+        return "new york"
+    if c in ("washington dc", "dc", "washington", "washington d c"):
+        return "washington dc"
+    return c
+
+
+def normalize_business_name(text: Optional[str], strip_location_qualifiers: bool = True) -> str:
+    """
+    Normalizes organizational / commercial business names:
+    - Strips location qualifiers in parentheses (e.g. 'spago (los angeles)' -> 'spago').
+    - Standardizes possessives (e.g. 'art\'s' -> 'arts').
+    - Replaces business abbreviations (e.g. 'art\'s delicatessen' -> 'arts deli').
+    - Preserves core name tokens while standardizing representation.
+    """
+    if not text:
+        return ""
+    cleaned = normalize_text(text)
+    if strip_location_qualifiers:
+        cleaned = _PAREN_LOCATION_PATTERN.sub(" ", cleaned).strip()
+    cleaned = _POSSESSIVE_PATTERN.sub(r"\1s", cleaned)
+    tokens = strip_punctuation(cleaned, replace_with_space=True).split()
+    expanded = [BUSINESS_ABBREVIATIONS.get(t, t) for t in tokens]
+    return " ".join(expanded)

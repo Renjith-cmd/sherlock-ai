@@ -90,3 +90,27 @@ GROUND_TRUTH = {
     "cp_r9a_r9c": True,   # Transitive a=c
     "cp_r10a_r10b": False # Unrelated
 }
+
+GROUND_TRUTH_CLUSTERS = {
+    "r1a": "c_john_doe",
+    "r1b": "c_john_doe",
+    "r2a": "c_ibm",
+    "r2b": "c_ibm",
+    "r3a": "c_sarah_connor",
+    "r3b": "c_sarah_connor",
+    "r4a": "c_alice_smith",
+    "r4b": "c_alice_smith",
+    "r5a": "c_mj_basketball",
+    "r5b": "c_mj_ai",
+    "r6a": "c_emp_a",
+    "r6b": "c_emp_b",
+    "r7a": "c_bowman_1",
+    "r7b": "c_bowman_2",
+    "r8a": "c_eminem",
+    "r8b": "c_eminem",
+    "r9a": "c_bruce_wayne",
+    "r9b": "c_bruce_wayne",
+    "r9c": "c_bruce_wayne",
+    "r10a": "c_acme",
+    "r10b": "c_everest",
+}

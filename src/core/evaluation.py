@@ -1,6 +1,6 @@
 from enum import Enum
 from typing import Any, Dict, Iterable, List, Optional, Set, Sequence, Tuple, Union
-from src.core.models import DecisionType, MatchDecision, CandidatePair
+from src.core.models import DecisionType, MatchDecision, CandidatePair, EntityCluster
 
 class UnknownPredictionPolicy(str, Enum):
     """
@@ -371,4 +371,434 @@ def evaluate_candidate_generation(
         ground_truth_positives_count=ground_truth_positives,
         covered_positives_count=covered_positives,
         total_compatible_pairs=computed_compatible,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Match Decision and End-to-End Evaluation (Milestone 3)
+# ---------------------------------------------------------------------------
+
+class MatchEvaluationMetrics:
+    """
+    Detailed evaluation metrics for match decisions on explicitly labeled pairs.
+    Tracks confusion counts (TP, FP, FN, TN) and explicit REVIEW counts and rates.
+    """
+
+    def __init__(
+        self,
+        true_positives: int,
+        false_positives: int,
+        false_negatives: int,
+        true_negatives: int,
+        review_count: int,
+        total_evaluated: int,
+        match_count: int = 0,
+        non_match_count: int = 0,
+    ):
+        self.true_positives = true_positives
+        self.false_positives = false_positives
+        self.false_negatives = false_negatives
+        self.true_negatives = true_negatives
+        self.review_count = review_count
+        self.total_evaluated = total_evaluated
+        self.match_count = match_count
+        self.non_match_count = non_match_count
+
+    @property
+    def precision(self) -> float:
+        denom = self.true_positives + self.false_positives
+        return self.true_positives / denom if denom > 0 else 0.0
+
+    @property
+    def recall(self) -> float:
+        denom = self.true_positives + self.false_negatives
+        return self.true_positives / denom if denom > 0 else 0.0
+
+    @property
+    def f1(self) -> float:
+        p, r = self.precision, self.recall
+        return 2 * (p * r) / (p + r) if (p + r) > 0 else 0.0
+
+    @property
+    def specificity(self) -> float:
+        denom = self.true_negatives + self.false_positives
+        return self.true_negatives / denom if denom > 0 else 0.0
+
+    @property
+    def positive_support(self) -> int:
+        return self.true_positives + self.false_negatives
+
+    @property
+    def negative_support(self) -> int:
+        return self.true_negatives + self.false_positives
+
+    @property
+    def review_rate(self) -> float:
+        return self.review_count / self.total_evaluated if self.total_evaluated > 0 else 0.0
+
+    @property
+    def accuracy(self) -> float:
+        return (self.true_positives + self.true_negatives) / self.total_evaluated if self.total_evaluated > 0 else 0.0
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "true_positives": self.true_positives,
+            "false_positives": self.false_positives,
+            "false_negatives": self.false_negatives,
+            "true_negatives": self.true_negatives,
+            "match_count": self.match_count,
+            "non_match_count": self.non_match_count,
+            "review_count": self.review_count,
+            "total_evaluated": self.total_evaluated,
+            "positive_support": self.positive_support,
+            "negative_support": self.negative_support,
+            "precision": self.precision,
+            "recall": self.recall,
+            "f1": self.f1,
+            "specificity": self.specificity,
+            "review_rate": self.review_rate,
+            "accuracy": self.accuracy,
+        }
+
+
+class EndToEndEvaluationMetrics:
+    """
+    Multi-stage entity resolution pipeline evaluation.
+    Clearly distinguishes:
+    1. Candidate recall from Milestone 2 (candidate generation phase)
+    2. Matcher recall on candidate pairs (decision engine phase)
+    3. End-to-end recall (accounting for true matches missed during candidate generation)
+    """
+
+    def __init__(
+        self,
+        candidate_metrics: CandidateEvaluationMetrics,
+        match_metrics: MatchEvaluationMetrics,
+        total_ground_truth_positives: int,
+        end_to_end_true_positives: int,
+    ):
+        self.candidate_metrics = candidate_metrics
+        self.match_metrics = match_metrics
+        self.total_ground_truth_positives = total_ground_truth_positives
+        self.end_to_end_true_positives = end_to_end_true_positives
+
+    @property
+    def candidate_recall(self) -> float:
+        return self.candidate_metrics.candidate_recall
+
+    @property
+    def matcher_recall_on_candidates(self) -> float:
+        return self.match_metrics.recall
+
+    @property
+    def end_to_end_recall(self) -> float:
+        if self.total_ground_truth_positives == 0:
+            return 0.0
+        return self.end_to_end_true_positives / self.total_ground_truth_positives
+
+    @property
+    def precision(self) -> float:
+        return self.match_metrics.precision
+
+    @property
+    def f1(self) -> float:
+        p, r = self.precision, self.end_to_end_recall
+        return 2 * (p * r) / (p + r) if (p + r) > 0 else 0.0
+
+    @property
+    def reduction_ratio(self) -> float:
+        return self.candidate_metrics.reduction_ratio
+
+    @property
+    def review_rate(self) -> float:
+        return self.match_metrics.review_rate
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "candidate_recall": self.candidate_recall,
+            "matcher_recall_on_candidates": self.matcher_recall_on_candidates,
+            "end_to_end_recall": self.end_to_end_recall,
+            "precision": self.precision,
+            "f1": self.f1,
+            "reduction_ratio": self.reduction_ratio,
+            "review_rate": self.review_rate,
+            "candidate_pairs_count": self.candidate_metrics.candidate_pairs_count,
+            "total_evaluated_decisions": self.match_metrics.total_evaluated,
+        }
+
+
+def evaluate_match_decisions(
+    decisions: Union[Dict[str, DecisionType], Iterable[Union[MatchDecision, Tuple[str, DecisionType]]]],
+    ground_truth: Dict[str, bool],
+    review_is_match: bool = False,
+    review_is_error: bool = True,
+    unknown_prediction_policy: UnknownPredictionPolicy = UnknownPredictionPolicy.RAISE,
+) -> MatchEvaluationMetrics:
+    """
+    Evaluates match decisions against ground truth, explicitly reporting REVIEW counts and rates.
+    """
+    if not isinstance(decisions, dict):
+        pred_dict = PairwiseEvaluator.validate_and_build_predictions(decisions)
+    else:
+        pred_dict = decisions
+
+    # Validate unknown prediction IDs
+    unknown_ids = set(pred_dict.keys()) - set(ground_truth.keys())
+    if unknown_ids:
+        if unknown_prediction_policy == UnknownPredictionPolicy.RAISE:
+            sorted_unknown = sorted(list(unknown_ids))[:10]
+            raise ValueError(
+                f"Found {len(unknown_ids)} prediction(s) outside ground truth: {sorted_unknown}. "
+                "Actual ground-truth labels are unknown."
+            )
+
+    tp = 0
+    fp = 0
+    fn = 0
+    tn = 0
+    match_count = 0
+    non_match_count = 0
+    review_count = 0
+
+    evaluated_ids = [p for p in pred_dict if p in ground_truth]
+    for pair_id in evaluated_ids:
+        decision = pred_dict[pair_id]
+        is_actual_match = ground_truth[pair_id]
+        if decision == DecisionType.MATCH:
+            match_count += 1
+        elif decision == DecisionType.NON_MATCH:
+            non_match_count += 1
+        elif decision == DecisionType.REVIEW:
+            review_count += 1
+
+        is_pred_match = (decision == DecisionType.MATCH) or (decision == DecisionType.REVIEW and review_is_match)
+
+        if is_actual_match:
+            if is_pred_match:
+                tp += 1
+            else:
+                fn += 1
+        else:
+            if is_pred_match:
+                fp += 1
+            else:
+                if decision == DecisionType.REVIEW and review_is_error:
+                    fp += 1
+                else:
+                    tn += 1
+
+    if unknown_prediction_policy == UnknownPredictionPolicy.PENALIZE_AS_FP:
+        for unk_id in unknown_ids:
+            decision = pred_dict[unk_id]
+            if decision == DecisionType.MATCH or (decision == DecisionType.REVIEW and review_is_match):
+                fp += 1
+
+    total_evaluated = len(evaluated_ids) + (len(unknown_ids) if unknown_prediction_policy == UnknownPredictionPolicy.PENALIZE_AS_FP else 0)
+    return MatchEvaluationMetrics(
+        true_positives=tp,
+        false_positives=fp,
+        false_negatives=fn,
+        true_negatives=tn,
+        review_count=review_count,
+        total_evaluated=total_evaluated,
+        match_count=match_count,
+        non_match_count=non_match_count,
+    )
+
+
+def evaluate_end_to_end_pipeline(
+    candidate_metrics: CandidateEvaluationMetrics,
+    decisions: Union[Dict[str, DecisionType], Iterable[Union[MatchDecision, Tuple[str, DecisionType]]]],
+    ground_truth: Dict[str, bool],
+    review_is_match: bool = False,
+    review_is_error: bool = True,
+    unknown_prediction_policy: UnknownPredictionPolicy = UnknownPredictionPolicy.RAISE,
+) -> EndToEndEvaluationMetrics:
+    """
+    Evaluates end-to-end pipeline, connecting candidate generation and match decisions.
+    """
+    match_metrics = evaluate_match_decisions(
+        decisions=decisions,
+        ground_truth=ground_truth,
+        review_is_match=review_is_match,
+        review_is_error=review_is_error,
+        unknown_prediction_policy=unknown_prediction_policy,
+    )
+
+    total_gt_positives = sum(1 for is_pos in ground_truth.values() if is_pos)
+    end_to_end_tp = match_metrics.true_positives
+
+    return EndToEndEvaluationMetrics(
+        candidate_metrics=candidate_metrics,
+        match_metrics=match_metrics,
+        total_ground_truth_positives=total_gt_positives,
+        end_to_end_true_positives=end_to_end_tp,
+    )
+
+
+class ClusteringMetrics:
+    """
+    Cluster-level evaluation metrics assessing derived clusters against ground truth.
+    """
+
+    def __init__(
+        self,
+        total_records: int,
+        total_clusters: int,
+        singleton_clusters: int,
+        multi_record_clusters: int,
+        largest_cluster_size: int,
+        pairwise_true_positives: int,
+        pairwise_false_positives: int,
+        pairwise_false_negatives: int,
+        pairwise_true_negatives: int,
+        purity: float,
+    ):
+        self.total_records = total_records
+        self.total_clusters = total_clusters
+        self.singleton_clusters = singleton_clusters
+        self.multi_record_clusters = multi_record_clusters
+        self.largest_cluster_size = largest_cluster_size
+        self.pairwise_true_positives = pairwise_true_positives
+        self.pairwise_false_positives = pairwise_false_positives
+        self.pairwise_false_negatives = pairwise_false_negatives
+        self.pairwise_true_negatives = pairwise_true_negatives
+        self.purity = purity
+
+    @property
+    def pairwise_precision(self) -> float:
+        denom = self.pairwise_true_positives + self.pairwise_false_positives
+        return self.pairwise_true_positives / denom if denom > 0 else 0.0
+
+    @property
+    def pairwise_recall(self) -> float:
+        denom = self.pairwise_true_positives + self.pairwise_false_negatives
+        return self.pairwise_true_positives / denom if denom > 0 else 0.0
+
+    @property
+    def pairwise_f1(self) -> float:
+        p, r = self.pairwise_precision, self.pairwise_recall
+        return 2 * (p * r) / (p + r) if (p + r) > 0 else 0.0
+
+    @property
+    def cluster_purity(self) -> float:
+        return self.purity
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "total_records": self.total_records,
+            "total_clusters": self.total_clusters,
+            "singleton_clusters": self.singleton_clusters,
+            "multi_record_clusters": self.multi_record_clusters,
+            "largest_cluster_size": self.largest_cluster_size,
+            "pairwise_true_positives": self.pairwise_true_positives,
+            "pairwise_false_positives": self.pairwise_false_positives,
+            "pairwise_false_negatives": self.pairwise_false_negatives,
+            "pairwise_true_negatives": self.pairwise_true_negatives,
+            "pairwise_precision": self.pairwise_precision,
+            "pairwise_recall": self.pairwise_recall,
+            "pairwise_f1": self.pairwise_f1,
+            "purity": self.purity,
+        }
+
+
+def evaluate_clustering(
+    clusters: Sequence[EntityCluster],
+    ground_truth_entities: Mapping[str, str],
+) -> ClusteringMetrics:
+    """
+    Evaluates cluster assignments against ground truth mapping of record_id -> canonical_entity_id.
+    """
+    if not clusters or not ground_truth_entities:
+        return ClusteringMetrics(
+            total_records=0,
+            total_clusters=0,
+            singleton_clusters=0,
+            multi_record_clusters=0,
+            largest_cluster_size=0,
+            pairwise_true_positives=0,
+            pairwise_false_positives=0,
+            pairwise_false_negatives=0,
+            pairwise_true_negatives=0,
+            purity=0.0,
+        )
+
+    # 1. Map each record to its predicted cluster ID, validating partition disjointness
+    seen_members: Dict[str, str] = {}
+    for c in clusters:
+        for mid in c.member_record_ids:
+            if mid in seen_members:
+                raise ValueError(
+                    f"Invalid clustering: Record '{mid}' appears in multiple clusters: "
+                    f"'{seen_members[mid]}' and '{c.entity_cluster_id}'."
+                )
+            seen_members[mid] = c.entity_cluster_id
+
+    # 2. Complete evaluation universe: all records in ground_truth_entities.
+    # Unclustered ground-truth records are treated as implicit singletons so that
+    # missed entity merges are accurately penalized as false negatives rather
+    # than silently ignored.
+    pred_cluster_map = dict(seen_members)
+    for r in ground_truth_entities:
+        if r not in pred_cluster_map:
+            pred_cluster_map[r] = f"__unclustered_singleton_{r}__"
+
+    evaluated_records = sorted(list(ground_truth_entities.keys()))
+    n = len(evaluated_records)
+
+    # 3. Pairwise cluster evaluation across all evaluated record pairs
+    tp = 0
+    fp = 0
+    fn = 0
+    tn = 0
+
+    for i in range(n):
+        for j in range(i + 1, n):
+            r_i = evaluated_records[i]
+            r_j = evaluated_records[j]
+            same_cluster = (pred_cluster_map[r_i] == pred_cluster_map[r_j])
+            same_truth = (ground_truth_entities[r_i] == ground_truth_entities[r_j])
+
+            if same_cluster and same_truth:
+                tp += 1
+            elif same_cluster and not same_truth:
+                fp += 1
+            elif not same_cluster and same_truth:
+                fn += 1
+            else:
+                tn += 1
+
+    # 4. Cluster purity: sum of max class counts in each cluster / total evaluated records
+    majority_sum = 0
+    for c in clusters:
+        members = [m for m in c.member_record_ids if m in ground_truth_entities]
+        if not members:
+            continue
+        counts: Dict[str, int] = {}
+        for m in members:
+            gt_id = ground_truth_entities[m]
+            counts[gt_id] = counts.get(gt_id, 0) + 1
+        majority_sum += max(counts.values())
+
+    # Unclustered ground-truth records are singletons contributing 1 each
+    unclustered_count = sum(1 for r in ground_truth_entities if r not in seen_members)
+    majority_sum += unclustered_count
+
+    purity = (majority_sum / len(evaluated_records)) if evaluated_records else 0.0
+
+    singleton_count = sum(1 for c in clusters if len(c.member_record_ids) == 1)
+    multi_count = sum(1 for c in clusters if len(c.member_record_ids) > 1)
+    max_size = max((len(c.member_record_ids) for c in clusters), default=0)
+
+    return ClusteringMetrics(
+        total_records=len(evaluated_records),
+        total_clusters=len(clusters),
+        singleton_clusters=singleton_count,
+        multi_record_clusters=multi_count,
+        largest_cluster_size=max_size,
+        pairwise_true_positives=tp,
+        pairwise_false_positives=fp,
+        pairwise_false_negatives=fn,
+        pairwise_true_negatives=tn,
+        purity=purity,
     )

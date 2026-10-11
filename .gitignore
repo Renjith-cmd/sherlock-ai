@@ -26,3 +26,7 @@ out.txt
 
 # Streamlit
 .streamlit/
+
+# Raw Datasets
+data/*.csv
+data/raw/

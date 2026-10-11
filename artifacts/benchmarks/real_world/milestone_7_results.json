@@ -1,0 +1,719 @@
+{
+  "benchmark_id": "sherlock_production_entity_resolution_v2",
+  "is_offline_fixture": false,
+  "master_deterministic_fingerprint": "d1422032908505671257450528fc376e7c443ca8f40fd0a27aa8eaa1608d9533",
+  "milestone": "Milestone 7",
+  "seed": 42,
+  "splits": {
+    "dev": {
+      "candidate_generation": {
+        "candidate_precision": 0.013267,
+        "candidate_recall": 1.0,
+        "candidates_count": 5050,
+        "covered_positives": 67,
+        "reduction_ratio": 0.9623,
+        "runtime_seconds": 0.0622
+      },
+      "entity_count": 451,
+      "ground_truth_positives": 67,
+      "partition_fingerprint": "632be003fb4fa06c5ced1e57d87d879bb029fba75e64a25ec9ca6e83a220ca92",
+      "partition_name": "DEV (Development 60%)",
+      "policies": {
+        "autonomous_high_precision": {
+          "attribute_weight": 0.4,
+          "autonomous_metrics": {
+            "precision": 1.0,
+            "specificity": 1.0
+          },
+          "clustering_default": {
+            "cluster_purity": 1.0,
+            "clusters_count": 455,
+            "pairwise_f1": 0.9692,
+            "pairwise_precision": 1.0,
+            "pairwise_recall": 0.9403
+          },
+          "clustering_full_clique": {
+            "cluster_purity": 1.0,
+            "clusters_count": 455,
+            "pairwise_f1": 0.9692,
+            "pairwise_precision": 1.0,
+            "pairwise_recall": 0.9403
+          },
+          "confusion_matrix": {
+            "fn_non_match": 0,
+            "fn_operational": 4,
+            "fp": 0,
+            "fp_in_review": 2729,
+            "tn_non_match": 2254,
+            "tp": 63,
+            "tp_in_review": 4
+          },
+          "decisions_total": 5050,
+          "match_count": 63,
+          "match_threshold": 0.82,
+          "name_weight": 0.6,
+          "non_match_count": 2254,
+          "non_match_threshold": 0.3,
+          "operational_metrics_strict": {
+            "f1": 0.9692,
+            "precision": 1.0,
+            "recall": 0.9403
+          },
+          "policy_fingerprint": "fd95bc9536d6e8db0f7cd5060e49a35f7e9b9dfced38daa9d328b3aca624df7e",
+          "policy_model_version": "sherlock_match_decision_engine_v2_high_precision",
+          "review_count": 2733,
+          "review_metrics": {
+            "review_precision": 0.0015,
+            "review_rate": 0.5412
+          },
+          "route_venue_conflicts_to_review": true,
+          "timings_seconds": {
+            "clustering": 0.0209,
+            "matching": 0.9514
+          }
+        },
+        "baseline": {
+          "attribute_weight": 0.35,
+          "autonomous_metrics": {
+            "precision": 1.0,
+            "specificity": 1.0
+          },
+          "clustering_default": {
+            "cluster_purity": 1.0,
+            "clusters_count": 512,
+            "pairwise_f1": 0.1644,
+            "pairwise_precision": 1.0,
+            "pairwise_recall": 0.0896
+          },
+          "clustering_full_clique": {
+            "cluster_purity": 1.0,
+            "clusters_count": 512,
+            "pairwise_f1": 0.1644,
+            "pairwise_precision": 1.0,
+            "pairwise_recall": 0.0896
+          },
+          "confusion_matrix": {
+            "fn_non_match": 35,
+            "fn_operational": 61,
+            "fp": 0,
+            "fp_in_review": 2260,
+            "tn_non_match": 2723,
+            "tp": 6,
+            "tp_in_review": 26
+          },
+          "decisions_total": 5050,
+          "match_count": 6,
+          "match_threshold": 0.75,
+          "name_weight": 0.65,
+          "non_match_count": 2758,
+          "non_match_threshold": 0.38,
+          "operational_metrics_strict": {
+            "f1": 0.1644,
+            "precision": 1.0,
+            "recall": 0.0896
+          },
+          "policy_fingerprint": "cc925b8240613a512e1310b2b22fd7fb2bbea2348af7ef12ae50677febd22d69",
+          "policy_model_version": "sherlock_match_decision_engine_v1",
+          "review_count": 2286,
+          "review_metrics": {
+            "review_precision": 0.0114,
+            "review_rate": 0.4527
+          },
+          "route_venue_conflicts_to_review": false,
+          "timings_seconds": {
+            "clustering": 0.0224,
+            "matching": 0.7597
+          }
+        },
+        "calibrated_evidence": {
+          "attribute_weight": 0.4,
+          "autonomous_metrics": {
+            "precision": 1.0,
+            "specificity": 1.0
+          },
+          "clustering_default": {
+            "cluster_purity": 1.0,
+            "clusters_count": 454,
+            "pairwise_f1": 0.9771,
+            "pairwise_precision": 1.0,
+            "pairwise_recall": 0.9552
+          },
+          "clustering_full_clique": {
+            "cluster_purity": 1.0,
+            "clusters_count": 454,
+            "pairwise_f1": 0.9771,
+            "pairwise_precision": 1.0,
+            "pairwise_recall": 0.9552
+          },
+          "confusion_matrix": {
+            "fn_non_match": 0,
+            "fn_operational": 3,
+            "fp": 0,
+            "fp_in_review": 2218,
+            "tn_non_match": 2765,
+            "tp": 64,
+            "tp_in_review": 3
+          },
+          "decisions_total": 5050,
+          "match_count": 64,
+          "match_threshold": 0.72,
+          "name_weight": 0.6,
+          "non_match_count": 2765,
+          "non_match_threshold": 0.35,
+          "operational_metrics_strict": {
+            "f1": 0.9771,
+            "precision": 1.0,
+            "recall": 0.9552
+          },
+          "policy_fingerprint": "c8970447e66de87b2c966b924b8b232c6b62449f1e3c4e129e59c713527f4d5f",
+          "policy_model_version": "sherlock_match_decision_engine_v2_calibrated",
+          "review_count": 2221,
+          "review_metrics": {
+            "review_precision": 0.0014,
+            "review_rate": 0.4398
+          },
+          "route_venue_conflicts_to_review": true,
+          "timings_seconds": {
+            "clustering": 0.0207,
+            "matching": 0.963
+          }
+        }
+      },
+      "record_count": 518,
+      "total_possible_pairs": 133903
+    },
+    "full": {
+      "candidate_generation": {
+        "candidate_precision": 0.016478,
+        "candidate_recall": 1.0,
+        "candidates_count": 6797,
+        "covered_positives": 112,
+        "reduction_ratio": 0.9818,
+        "runtime_seconds": 0.0768
+      },
+      "entity_count": 752,
+      "ground_truth_positives": 112,
+      "partition_fingerprint": "30b1e8ac6e338e990364e1c66fbfb49f7930367b15d95704787bffb33d8d505e",
+      "partition_name": "FULL (Entire Dataset 100%)",
+      "policies": {
+        "autonomous_high_precision": {
+          "attribute_weight": 0.4,
+          "autonomous_metrics": {
+            "precision": 0.9902,
+            "specificity": 0.9998
+          },
+          "clustering_default": {
+            "cluster_purity": 0.9988,
+            "clusters_count": 763,
+            "pairwise_f1": 0.939,
+            "pairwise_precision": 0.9901,
+            "pairwise_recall": 0.8929
+          },
+          "clustering_full_clique": {
+            "cluster_purity": 0.9988,
+            "clusters_count": 763,
+            "pairwise_f1": 0.939,
+            "pairwise_precision": 0.9901,
+            "pairwise_recall": 0.8929
+          },
+          "confusion_matrix": {
+            "fn_non_match": 3,
+            "fn_operational": 11,
+            "fp": 1,
+            "fp_in_review": 2236,
+            "tn_non_match": 4448,
+            "tp": 101,
+            "tp_in_review": 8
+          },
+          "decisions_total": 6797,
+          "match_count": 102,
+          "match_threshold": 0.82,
+          "name_weight": 0.6,
+          "non_match_count": 4451,
+          "non_match_threshold": 0.3,
+          "operational_metrics_strict": {
+            "f1": 0.9439,
+            "precision": 0.9902,
+            "recall": 0.9018
+          },
+          "policy_fingerprint": "9b20e28a6025abbac15716a8fc203ce227ef3c2c2ce9140e301719344255a1ca",
+          "policy_model_version": "sherlock_match_decision_engine_v2_high_precision",
+          "review_count": 2244,
+          "review_metrics": {
+            "review_precision": 0.0036,
+            "review_rate": 0.3301
+          },
+          "route_venue_conflicts_to_review": true,
+          "timings_seconds": {
+            "clustering": 0.0477,
+            "matching": 1.3242
+          }
+        },
+        "baseline": {
+          "attribute_weight": 0.35,
+          "autonomous_metrics": {
+            "precision": 0.8889,
+            "specificity": 0.9998
+          },
+          "clustering_default": {
+            "cluster_purity": 0.9988,
+            "clusters_count": 855,
+            "pairwise_f1": 0.1322,
+            "pairwise_precision": 0.8889,
+            "pairwise_recall": 0.0714
+          },
+          "clustering_full_clique": {
+            "cluster_purity": 0.9988,
+            "clusters_count": 855,
+            "pairwise_f1": 0.1322,
+            "pairwise_precision": 0.8889,
+            "pairwise_recall": 0.0714
+          },
+          "confusion_matrix": {
+            "fn_non_match": 54,
+            "fn_operational": 104,
+            "fp": 1,
+            "fp_in_review": 1560,
+            "tn_non_match": 5124,
+            "tp": 8,
+            "tp_in_review": 50
+          },
+          "decisions_total": 6797,
+          "match_count": 9,
+          "match_threshold": 0.75,
+          "name_weight": 0.65,
+          "non_match_count": 5178,
+          "non_match_threshold": 0.38,
+          "operational_metrics_strict": {
+            "f1": 0.1322,
+            "precision": 0.8889,
+            "recall": 0.0714
+          },
+          "policy_fingerprint": "542ec2884d4e8d9b06b775b74144c5ddf815f7435622b7a2aa3ee35de6875ed8",
+          "policy_model_version": "sherlock_match_decision_engine_v1",
+          "review_count": 1610,
+          "review_metrics": {
+            "review_precision": 0.0311,
+            "review_rate": 0.2369
+          },
+          "route_venue_conflicts_to_review": false,
+          "timings_seconds": {
+            "clustering": 0.0457,
+            "matching": 1.0409
+          }
+        },
+        "calibrated_evidence": {
+          "attribute_weight": 0.4,
+          "autonomous_metrics": {
+            "precision": 0.9904,
+            "specificity": 0.9998
+          },
+          "clustering_default": {
+            "cluster_purity": 0.9988,
+            "clusters_count": 761,
+            "pairwise_f1": 0.9488,
+            "pairwise_precision": 0.9903,
+            "pairwise_recall": 0.9107
+          },
+          "clustering_full_clique": {
+            "cluster_purity": 0.9988,
+            "clusters_count": 761,
+            "pairwise_f1": 0.9488,
+            "pairwise_precision": 0.9903,
+            "pairwise_recall": 0.9107
+          },
+          "confusion_matrix": {
+            "fn_non_match": 3,
+            "fn_operational": 9,
+            "fp": 1,
+            "fp_in_review": 1491,
+            "tn_non_match": 5193,
+            "tp": 103,
+            "tp_in_review": 6
+          },
+          "decisions_total": 6797,
+          "match_count": 104,
+          "match_threshold": 0.72,
+          "name_weight": 0.6,
+          "non_match_count": 5196,
+          "non_match_threshold": 0.35,
+          "operational_metrics_strict": {
+            "f1": 0.9537,
+            "precision": 0.9904,
+            "recall": 0.9196
+          },
+          "policy_fingerprint": "f89142adf1db019af89b843df97cf9253a4d3711c42bca0ea744525ec7a13ffd",
+          "policy_model_version": "sherlock_match_decision_engine_v2_calibrated",
+          "review_count": 1497,
+          "review_metrics": {
+            "review_precision": 0.004,
+            "review_rate": 0.2202
+          },
+          "route_venue_conflicts_to_review": true,
+          "timings_seconds": {
+            "clustering": 0.0463,
+            "matching": 1.3167
+          }
+        }
+      },
+      "record_count": 864,
+      "total_possible_pairs": 372816
+    },
+    "test": {
+      "candidate_generation": {
+        "candidate_precision": 0.012575,
+        "candidate_recall": 1.0,
+        "candidates_count": 1829,
+        "covered_positives": 23,
+        "reduction_ratio": 0.8785,
+        "runtime_seconds": 0.0187
+      },
+      "entity_count": 151,
+      "ground_truth_positives": 23,
+      "partition_fingerprint": "5e94310594b05dc13123345d7bfcd0b527445a63affabebe76017d834f5c2a7d",
+      "partition_name": "TEST (Held-Out Test 20%)",
+      "policies": {
+        "autonomous_high_precision": {
+          "attribute_weight": 0.4,
+          "autonomous_metrics": {
+            "precision": 0.95,
+            "specificity": 0.9984
+          },
+          "clustering_default": {
+            "cluster_purity": 0.9943,
+            "clusters_count": 155,
+            "pairwise_f1": 0.8571,
+            "pairwise_precision": 0.9474,
+            "pairwise_recall": 0.7826
+          },
+          "clustering_full_clique": {
+            "cluster_purity": 0.9943,
+            "clusters_count": 155,
+            "pairwise_f1": 0.8571,
+            "pairwise_precision": 0.9474,
+            "pairwise_recall": 0.7826
+          },
+          "confusion_matrix": {
+            "fn_non_match": 2,
+            "fn_operational": 4,
+            "fp": 1,
+            "fp_in_review": 1198,
+            "tn_non_match": 607,
+            "tp": 19,
+            "tp_in_review": 2
+          },
+          "decisions_total": 1829,
+          "match_count": 20,
+          "match_threshold": 0.82,
+          "name_weight": 0.6,
+          "non_match_count": 609,
+          "non_match_threshold": 0.3,
+          "operational_metrics_strict": {
+            "f1": 0.8837,
+            "precision": 0.95,
+            "recall": 0.8261
+          },
+          "policy_fingerprint": "84ceca594a0027e4291cfecf24128823d5b82690a846faf206e0a9ad1ea2e32f",
+          "policy_model_version": "sherlock_match_decision_engine_v2_high_precision",
+          "review_count": 1200,
+          "review_metrics": {
+            "review_precision": 0.0017,
+            "review_rate": 0.6561
+          },
+          "route_venue_conflicts_to_review": true,
+          "timings_seconds": {
+            "clustering": 0.0047,
+            "matching": 0.3334
+          }
+        },
+        "baseline": {
+          "attribute_weight": 0.35,
+          "autonomous_metrics": {
+            "precision": 0.0,
+            "specificity": 1.0
+          },
+          "clustering_default": {
+            "cluster_purity": 1.0,
+            "clusters_count": 174,
+            "pairwise_f1": 0.0,
+            "pairwise_precision": 0.0,
+            "pairwise_recall": 0.0
+          },
+          "clustering_full_clique": {
+            "cluster_purity": 1.0,
+            "clusters_count": 174,
+            "pairwise_f1": 0.0,
+            "pairwise_precision": 0.0,
+            "pairwise_recall": 0.0
+          },
+          "confusion_matrix": {
+            "fn_non_match": 9,
+            "fn_operational": 23,
+            "fp": 0,
+            "fp_in_review": 1129,
+            "tn_non_match": 677,
+            "tp": 0,
+            "tp_in_review": 14
+          },
+          "decisions_total": 1829,
+          "match_count": 0,
+          "match_threshold": 0.75,
+          "name_weight": 0.65,
+          "non_match_count": 686,
+          "non_match_threshold": 0.38,
+          "operational_metrics_strict": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0
+          },
+          "policy_fingerprint": "04bacc26559eea76f635c31e100873c049db1a0a35f773d2a88a8f6798b2c23f",
+          "policy_model_version": "sherlock_match_decision_engine_v1",
+          "review_count": 1143,
+          "review_metrics": {
+            "review_precision": 0.0122,
+            "review_rate": 0.6249
+          },
+          "route_venue_conflicts_to_review": false,
+          "timings_seconds": {
+            "clustering": 0.0048,
+            "matching": 0.2627
+          }
+        },
+        "calibrated_evidence": {
+          "attribute_weight": 0.4,
+          "autonomous_metrics": {
+            "precision": 0.95,
+            "specificity": 0.9986
+          },
+          "clustering_default": {
+            "cluster_purity": 0.9943,
+            "clusters_count": 155,
+            "pairwise_f1": 0.8571,
+            "pairwise_precision": 0.9474,
+            "pairwise_recall": 0.7826
+          },
+          "clustering_full_clique": {
+            "cluster_purity": 0.9943,
+            "clusters_count": 155,
+            "pairwise_f1": 0.8571,
+            "pairwise_precision": 0.9474,
+            "pairwise_recall": 0.7826
+          },
+          "confusion_matrix": {
+            "fn_non_match": 2,
+            "fn_operational": 4,
+            "fp": 1,
+            "fp_in_review": 1070,
+            "tn_non_match": 735,
+            "tp": 19,
+            "tp_in_review": 2
+          },
+          "decisions_total": 1829,
+          "match_count": 20,
+          "match_threshold": 0.72,
+          "name_weight": 0.6,
+          "non_match_count": 737,
+          "non_match_threshold": 0.35,
+          "operational_metrics_strict": {
+            "f1": 0.8837,
+            "precision": 0.95,
+            "recall": 0.8261
+          },
+          "policy_fingerprint": "c97d2a7b5ff2aa086c3c670e2fbcf4b16d2b4e3e0388dcc0ba76cec7e0691ecb",
+          "policy_model_version": "sherlock_match_decision_engine_v2_calibrated",
+          "review_count": 1072,
+          "review_metrics": {
+            "review_precision": 0.0019,
+            "review_rate": 0.5861
+          },
+          "route_venue_conflicts_to_review": true,
+          "timings_seconds": {
+            "clustering": 0.0046,
+            "matching": 0.3335
+          }
+        }
+      },
+      "record_count": 174,
+      "total_possible_pairs": 15051
+    },
+    "val": {
+      "candidate_generation": {
+        "candidate_precision": 0.00959,
+        "candidate_recall": 1.0,
+        "candidates_count": 2294,
+        "covered_positives": 22,
+        "reduction_ratio": 0.844,
+        "runtime_seconds": 0.0301
+      },
+      "entity_count": 150,
+      "ground_truth_positives": 22,
+      "partition_fingerprint": "b86bc12c521094f69db8e9af241fe4296f09058b803c481042ff28c6702f8e36",
+      "partition_name": "VAL (Validation 20%)",
+      "policies": {
+        "autonomous_high_precision": {
+          "attribute_weight": 0.4,
+          "autonomous_metrics": {
+            "precision": 1.0,
+            "specificity": 1.0
+          },
+          "clustering_default": {
+            "cluster_purity": 1.0,
+            "clusters_count": 153,
+            "pairwise_f1": 0.9268,
+            "pairwise_precision": 1.0,
+            "pairwise_recall": 0.8636
+          },
+          "clustering_full_clique": {
+            "cluster_purity": 1.0,
+            "clusters_count": 153,
+            "pairwise_f1": 0.9268,
+            "pairwise_precision": 1.0,
+            "pairwise_recall": 0.8636
+          },
+          "confusion_matrix": {
+            "fn_non_match": 1,
+            "fn_operational": 3,
+            "fp": 0,
+            "fp_in_review": 1944,
+            "tn_non_match": 328,
+            "tp": 19,
+            "tp_in_review": 2
+          },
+          "decisions_total": 2294,
+          "match_count": 19,
+          "match_threshold": 0.82,
+          "name_weight": 0.6,
+          "non_match_count": 329,
+          "non_match_threshold": 0.3,
+          "operational_metrics_strict": {
+            "f1": 0.9268,
+            "precision": 1.0,
+            "recall": 0.8636
+          },
+          "policy_fingerprint": "f03b43c53d2dd6f0565acd132acf241eca1e962534a1623defbc591272443462",
+          "policy_model_version": "sherlock_match_decision_engine_v2_high_precision",
+          "review_count": 1946,
+          "review_metrics": {
+            "review_precision": 0.001,
+            "review_rate": 0.8483
+          },
+          "route_venue_conflicts_to_review": true,
+          "timings_seconds": {
+            "clustering": 0.0051,
+            "matching": 0.4137
+          }
+        },
+        "baseline": {
+          "attribute_weight": 0.35,
+          "autonomous_metrics": {
+            "precision": 0.6667,
+            "specificity": 0.9973
+          },
+          "clustering_default": {
+            "cluster_purity": 0.9942,
+            "clusters_count": 169,
+            "pairwise_f1": 0.16,
+            "pairwise_precision": 0.6667,
+            "pairwise_recall": 0.0909
+          },
+          "clustering_full_clique": {
+            "cluster_purity": 0.9942,
+            "clusters_count": 169,
+            "pairwise_f1": 0.16,
+            "pairwise_precision": 0.6667,
+            "pairwise_recall": 0.0909
+          },
+          "confusion_matrix": {
+            "fn_non_match": 10,
+            "fn_operational": 20,
+            "fp": 1,
+            "fp_in_review": 1899,
+            "tn_non_match": 372,
+            "tp": 2,
+            "tp_in_review": 10
+          },
+          "decisions_total": 2294,
+          "match_count": 3,
+          "match_threshold": 0.75,
+          "name_weight": 0.65,
+          "non_match_count": 382,
+          "non_match_threshold": 0.38,
+          "operational_metrics_strict": {
+            "f1": 0.16,
+            "precision": 0.6667,
+            "recall": 0.0909
+          },
+          "policy_fingerprint": "5de1699cd598b4d3daf8fa91b3ee227bf458f0187a64b0503d76d6296bffd7be",
+          "policy_model_version": "sherlock_match_decision_engine_v1",
+          "review_count": 1909,
+          "review_metrics": {
+            "review_precision": 0.0052,
+            "review_rate": 0.8322
+          },
+          "route_venue_conflicts_to_review": false,
+          "timings_seconds": {
+            "clustering": 0.0048,
+            "matching": 0.326
+          }
+        },
+        "calibrated_evidence": {
+          "attribute_weight": 0.4,
+          "autonomous_metrics": {
+            "precision": 1.0,
+            "specificity": 1.0
+          },
+          "clustering_default": {
+            "cluster_purity": 1.0,
+            "clusters_count": 152,
+            "pairwise_f1": 0.9524,
+            "pairwise_precision": 1.0,
+            "pairwise_recall": 0.9091
+          },
+          "clustering_full_clique": {
+            "cluster_purity": 1.0,
+            "clusters_count": 152,
+            "pairwise_f1": 0.9524,
+            "pairwise_precision": 1.0,
+            "pairwise_recall": 0.9091
+          },
+          "confusion_matrix": {
+            "fn_non_match": 1,
+            "fn_operational": 2,
+            "fp": 0,
+            "fp_in_review": 1793,
+            "tn_non_match": 479,
+            "tp": 20,
+            "tp_in_review": 1
+          },
+          "decisions_total": 2294,
+          "match_count": 20,
+          "match_threshold": 0.72,
+          "name_weight": 0.6,
+          "non_match_count": 480,
+          "non_match_threshold": 0.35,
+          "operational_metrics_strict": {
+            "f1": 0.9524,
+            "precision": 1.0,
+            "recall": 0.9091
+          },
+          "policy_fingerprint": "4344a7edac31ebb9006b814d41b077301859f2c39ff7a6c6b97f4cc2443afb6a",
+          "policy_model_version": "sherlock_match_decision_engine_v2_calibrated",
+          "review_count": 1794,
+          "review_metrics": {
+            "review_precision": 0.0006,
+            "review_rate": 0.782
+          },
+          "route_venue_conflicts_to_review": true,
+          "timings_seconds": {
+            "clustering": 0.0051,
+            "matching": 0.4147
+          }
+        }
+      },
+      "record_count": 172,
+      "total_possible_pairs": 14706
+    }
+  },
+  "timestamp_epoch": 1791742047.3797798,
+  "total_elapsed_seconds": 9.3873
+}
