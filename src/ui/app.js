@@ -416,7 +416,7 @@
   async function apiFetch(endpoint, options = {}) {
     try {
       const headers = { ...(options.headers || {}) };
-      const token = localStorage.getItem("sherlock_api_token") || sessionStorage.getItem("sherlock_api_token") || '';
+      const token = getApiToken();
       if (token && !headers["Authorization"] && !headers["X-API-Key"]) {
         headers["Authorization"] = `Bearer ${token}`;
       }
@@ -489,6 +489,10 @@
     setupEventListeners();
     applyPreferencesToControls();
     await checkHealth();
+    if (!hasApiToken()) {
+      promptForApiToken();
+      return;
+    }
     await loadInvestigationsList();
     await loadSystemStats();
     switchTab(state.activeTab);
@@ -510,6 +514,14 @@
   function persistPreference(name, value) {
     preferences[name] = value;
     savePreferences();
+  }
+
+  function getApiToken() {
+    return localStorage.getItem("sherlock_api_token") || sessionStorage.getItem("sherlock_api_token") || "";
+  }
+
+  function hasApiToken() {
+    return getApiToken().trim().length >= 16;
   }
 
   function switchTab(tabId) {
@@ -553,7 +565,7 @@
     else if (tabId === "tab-report") loadReport();
     else if (tabId === "tab-settings") {
       checkHealth();
-      loadSystemStats();
+      if (hasApiToken()) loadSystemStats();
     }
   }
 
@@ -964,6 +976,7 @@
         if (els.apiTokenStatus) els.apiTokenStatus.textContent = "Token saved in this browser.";
         showToast("API access token saved", "success");
         checkHealth();
+        loadInvestigationsList();
         loadSystemStats();
       });
     }

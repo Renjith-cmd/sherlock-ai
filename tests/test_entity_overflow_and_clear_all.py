@@ -315,6 +315,10 @@ def test_ui_modal_and_js_phrase_contracts():
     assert "function promptForApiToken()" in js
     assert "API access is locked. Enter the deployment token here" in js
     assert "Investigation actions need the API access token" in js
+    assert "if (!hasApiToken())" in js
+    assert "promptForApiToken();\n      return;" in js
+    assert 'if (hasApiToken()) loadSystemStats();' in js
+    assert "loadInvestigationsList();\n        loadSystemStats();" in js
 
 
 def test_extremely_long_entity_ids_and_names_formatting_and_resilience():
