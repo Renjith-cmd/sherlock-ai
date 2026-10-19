@@ -312,6 +312,9 @@ def test_ui_modal_and_js_phrase_contracts():
     assert "persistPreference(\"entitiesPageSize\"" in js
     assert "persistPreference(\"evidencePageSize\"" in js
     assert "preferences = { ...DEFAULT_PREFERENCES" in js
+    assert "function promptForApiToken()" in js
+    assert "API access is locked. Enter the deployment token here" in js
+    assert "Investigation actions need the API access token" in js
 
 
 def test_extremely_long_entity_ids_and_names_formatting_and_resilience():

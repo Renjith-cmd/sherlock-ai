@@ -65,6 +65,7 @@
     healthInfo: null,
     activeEntityProfile: null,
     activeEvidenceItem: null,
+    apiAuthPrompted: false,
     // Workspaces Pagination, Filter & View State
     entitiesCurrentPage: 1,
     entitiesPageSize: Number(preferences.entitiesPageSize),
@@ -430,6 +431,7 @@
             errorDetail = errJson.detail;
           }
         } catch (_) {}
+        if (res.status === 401) promptForApiToken();
         throw new Error(errorDetail);
       }
       return await res.json();
@@ -438,6 +440,18 @@
       showToast(err.message, "error");
       throw err;
     }
+  }
+
+  function promptForApiToken() {
+    if (state.apiAuthPrompted) return;
+    state.apiAuthPrompted = true;
+    state.activeTab = "tab-settings";
+    persistPreference("activeTab", state.activeTab);
+    if (els.apiTokenStatus) {
+      els.apiTokenStatus.textContent = "API access is locked. Enter the deployment token here, then select Save Token to enable investigation actions.";
+    }
+    showToast("Investigation actions need the API access token. Enter it in Settings.", "warning");
+    switchTab("tab-settings");
   }
 
   function showToast(message, type = "info") {
@@ -945,6 +959,7 @@
           return;
         }
         localStorage.setItem("sherlock_api_token", token);
+        state.apiAuthPrompted = false;
         if (els.apiTokenInput) els.apiTokenInput.value = "";
         if (els.apiTokenStatus) els.apiTokenStatus.textContent = "Token saved in this browser.";
         showToast("API access token saved", "success");
