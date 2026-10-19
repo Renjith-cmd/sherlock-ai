@@ -1488,10 +1488,10 @@
         <div class="settings-grid">
           <div class="cream-panel-card">
             <h3 class="panel-card-title text-plum">API Access</h3>
-            <p class="panel-card-sub text-muted">Enter the access token configured by the deployment administrator. The token is stored in this browser only.</p>
+            <p class="panel-card-sub text-muted">Vercel access is verified before the app loads. A bearer token is only needed when connecting to a separately token-protected API.</p>
             <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-              <input id="api-token-input" class="input-pill" type="password" autocomplete="off" placeholder="Vercel API token" aria-label="API access token">
-              <button id="btn-save-api-token" class="btn btn-dark-pill btn-sm" type="button">Save Token</button>
+              <input id="api-token-input" class="input-pill" type="password" autocomplete="off" placeholder="Optional self-hosted API token" aria-label="API access token">
+              <button id="btn-save-api-token" class="btn btn-dark-pill btn-sm" type="button">Save API Token</button>
               <button id="btn-clear-api-token" class="btn btn-secondary-subtle btn-sm" type="button">Clear</button>
             </div>
             <div id="api-token-status" class="text-muted" role="status" aria-live="polite"></div>

@@ -207,6 +207,24 @@ def test_clear_all_auth_enforcement(disposable_db_path):
         assert valid_res.json()["status"] == "cleared"
 
 
+def test_upstream_protection_can_disable_duplicate_api_auth(disposable_db_path):
+    """Vercel Deployment Protection is the access boundary; FastAPI should not require a second browser token."""
+    if not HAS_FASTAPI:
+        pytest.skip("FastAPI not installed in this environment.")
+    app = create_app(
+        db_path=disposable_db_path,
+        api_token="unused_upstream_protection_token",
+        enforce_auth=True,
+        disable_auth=True,
+    )
+    with TestClient(app) as client:
+        created = client.post(
+            "/api/v1/investigations",
+            json={"investigation_id": "upstream_protected_case", "description": "Protected by the hosting platform"},
+        )
+        assert created.status_code == 201
+
+
 def test_clear_all_idempotent_on_empty_db(temp_api_client):
     """Verify that running clear-all repeatedly on an empty database succeeds cleanly without errors."""
     for _ in range(2):
@@ -313,12 +331,9 @@ def test_ui_modal_and_js_phrase_contracts():
     assert "persistPreference(\"evidencePageSize\"" in js
     assert "preferences = { ...DEFAULT_PREFERENCES" in js
     assert "function promptForApiToken()" in js
-    assert "API access is locked. Enter the deployment token here" in js
-    assert "Investigation actions need the API access token" in js
-    assert "if (!hasApiToken())" in js
-    assert "promptForApiToken();\n      return;" in js
-    assert 'if (hasApiToken()) loadSystemStats();' in js
-    assert "loadInvestigationsList();\n        loadSystemStats();" in js
+    assert "Vercel, sign in through Vercel Deployment Protection" in js
+    assert "Backend authorization failed" in js
+    assert "disable_auth=True" in open(os.path.join(base_dir, "api", "index.py"), encoding="utf-8").read()
 
 
 def test_extremely_long_entity_ids_and_names_formatting_and_resilience():

@@ -448,9 +448,9 @@
     state.activeTab = "tab-settings";
     persistPreference("activeTab", state.activeTab);
     if (els.apiTokenStatus) {
-      els.apiTokenStatus.textContent = "API access is locked. Enter the deployment token here, then select Save Token to enable investigation actions.";
+      els.apiTokenStatus.textContent = "The backend rejected this request. For Vercel, sign in through Vercel Deployment Protection. For a self-hosted token-protected server, enter its API token here.";
     }
-    showToast("Investigation actions need the API access token. Enter it in Settings.", "warning");
+    showToast("Backend authorization failed. Check Vercel access or the self-hosted API token in Settings.", "warning");
     switchTab("tab-settings");
   }
 
@@ -489,10 +489,6 @@
     setupEventListeners();
     applyPreferencesToControls();
     await checkHealth();
-    if (!hasApiToken()) {
-      promptForApiToken();
-      return;
-    }
     await loadInvestigationsList();
     await loadSystemStats();
     switchTab(state.activeTab);
@@ -518,10 +514,6 @@
 
   function getApiToken() {
     return localStorage.getItem("sherlock_api_token") || sessionStorage.getItem("sherlock_api_token") || "";
-  }
-
-  function hasApiToken() {
-    return getApiToken().trim().length >= 16;
   }
 
   function switchTab(tabId) {
@@ -565,7 +557,7 @@
     else if (tabId === "tab-report") loadReport();
     else if (tabId === "tab-settings") {
       checkHealth();
-      if (hasApiToken()) loadSystemStats();
+      loadSystemStats();
     }
   }
 

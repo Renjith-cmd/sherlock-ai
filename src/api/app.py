@@ -27,6 +27,7 @@ def create_app(
     backend_mode: str = "rule",
     api_token: Optional[str] = None,
     enforce_auth: bool = False,
+    disable_auth: bool = False,
 ) -> FastAPI:
     """
     Construct and configure the Sherlock AI FastAPI application.
@@ -41,8 +42,8 @@ def create_app(
     )
 
     # 1. Authentication Middleware for Remote / Protected Deployments
-    effective_token = api_token or os.getenv("SHERLOCK_API_TOKEN")
-    should_enforce_auth = enforce_auth or bool(effective_token)
+    effective_token = None if disable_auth else (api_token or os.getenv("SHERLOCK_API_TOKEN"))
+    should_enforce_auth = False if disable_auth else (enforce_auth or bool(effective_token))
 
     if should_enforce_auth and effective_token:
         @app.middleware("http")

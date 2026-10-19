@@ -193,7 +193,7 @@ Starts the FastAPI application and serves the redesigned mobile-first warm cream
 ### 5.6 Deploy the Investigation UI/API to Vercel
 The repository includes a Vercel Python function entrypoint at `api/index.py` and `vercel.json`. The Vercel dependency profile is intentionally lightweight; install `requirements-full.txt` for the optional scraper, ML, Neo4j, and Streamlit surfaces when running the full repository locally.
 
-Before deploying, configure `SHERLOCK_API_TOKEN` in Vercel Project Settings with a random secret of at least 16 characters. Then deploy this repository as a new Vercel project. The UI shell and static assets are public, but all investigation data APIs require the bearer token. In Settings, enter the same token under API Access; it is stored in that browser's local storage.
+Deploy this repository as a Vercel project and enable Vercel Deployment Protection for the deployment. The Vercel entrypoint relies on that upstream protection and does not require a second API bearer token in the browser. `SHERLOCK_API_TOKEN` remains available for a separately exposed/self-hosted API; do not expose an unprotected deployment publicly.
 
 **Persistence limitation:** the default Vercel database path is `/tmp/sherlock_investigations.db`. Vercel function filesystems are ephemeral and separate between instances, so SQLite data is not durable or shared across invocations. Use this deployment only for a stateless/demo preview unless the application is configured with a durable external persistence backend. Vercel deployment has not been tested with the optional ML backend.
 
