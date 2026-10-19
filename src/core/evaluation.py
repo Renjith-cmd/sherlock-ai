@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any, Dict, Iterable, List, Optional, Set, Sequence, Tuple, Union
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Set, Sequence, Tuple, Union
 from src.core.models import DecisionType, MatchDecision, CandidatePair, EntityCluster
 
 class UnknownPredictionPolicy(str, Enum):

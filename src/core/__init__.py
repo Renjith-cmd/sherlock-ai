@@ -11,6 +11,62 @@ from src.core.models import (
     Evidence,
     MatchDecision,
     EntityCluster,
+    ReviewStatus,
+    RelationshipEpistemicTier,
+    ConfidenceSemantics,
+    InvestigationEntity,
+    ClaimCorrection,
+    Claim,
+    Relationship,
+)
+from src.core.investigation_graph import (
+    BaseInvestigationGraphStore,
+    InMemoryInvestigationGraphStore,
+    Neo4jInvestigationGraphAdapter,
+)
+from src.core.investigation_service import (
+    RelationshipExplanation,
+    InvestigationResult,
+    InvestigationQueryService,
+)
+from src.core.investigation_lifecycle import (
+    InvestigationLifecycleManager,
+)
+from src.core.document_ingestion import (
+    DocumentFormat,
+    DocumentParsingError,
+    ExtractionCapabilityError,
+    DocumentLimitExceededError,
+    IngestionConfig,
+    IngestedDocument,
+    BaseDocumentParser,
+    TextDocumentParser,
+    JsonDocumentParser,
+    PdfDocumentParser,
+    DocumentIngestionService,
+)
+from src.core.ner import (
+    EntityMention,
+    BaseNERExtractor,
+    DeterministicRuleNERExtractor,
+    split_sentences_with_spans,
+)
+from src.core.relation_extraction import (
+    ExtractedRelationCandidate,
+    BaseRelationExtractor,
+    DeterministicRuleRelationExtractor,
+)
+from src.core.document_pipeline import (
+    ExtractionPipelineResult,
+    DocumentExtractionPipeline,
+)
+from src.core.document_evaluation import (
+    GoldEntity,
+    GoldRelation,
+    GoldDocumentFixture,
+    NEREvaluationReport,
+    RelationEvaluationReport,
+    DocumentEvaluationRunner,
 )
 from src.core.evaluation import (
     UnknownPredictionPolicy,
@@ -113,6 +169,48 @@ __all__ = [
     "Evidence",
     "MatchDecision",
     "EntityCluster",
+    "ReviewStatus",
+    "RelationshipEpistemicTier",
+    "ConfidenceSemantics",
+    "InvestigationEntity",
+    "ClaimCorrection",
+    "Claim",
+    "Relationship",
+    # Investigation Graph & Lifecycle (Milestone 8)
+    "BaseInvestigationGraphStore",
+    "InMemoryInvestigationGraphStore",
+    "Neo4jInvestigationGraphAdapter",
+    "RelationshipExplanation",
+    "InvestigationResult",
+    "InvestigationQueryService",
+    "InvestigationLifecycleManager",
+    # Document Ingestion, NER & Relations (Milestone 9)
+    "DocumentFormat",
+    "DocumentParsingError",
+    "ExtractionCapabilityError",
+    "DocumentLimitExceededError",
+    "IngestionConfig",
+    "IngestedDocument",
+    "BaseDocumentParser",
+    "TextDocumentParser",
+    "JsonDocumentParser",
+    "PdfDocumentParser",
+    "DocumentIngestionService",
+    "EntityMention",
+    "BaseNERExtractor",
+    "DeterministicRuleNERExtractor",
+    "split_sentences_with_spans",
+    "ExtractedRelationCandidate",
+    "BaseRelationExtractor",
+    "DeterministicRuleRelationExtractor",
+    "ExtractionPipelineResult",
+    "DocumentExtractionPipeline",
+    "GoldEntity",
+    "GoldRelation",
+    "GoldDocumentFixture",
+    "NEREvaluationReport",
+    "RelationEvaluationReport",
+    "DocumentEvaluationRunner",
     # Evaluation
     "UnknownPredictionPolicy",
     "EvaluationMetrics",

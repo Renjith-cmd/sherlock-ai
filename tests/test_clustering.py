@@ -526,3 +526,96 @@ def test_source_uncertainty_policy_routes_dob_conflict_to_review():
     assert any(rej.conflicting_decision == DecisionType.REVIEW for rej in result.rejected_merges)
     assert any("ra" in p and "rc" in p for p in result.unresolved_candidate_pairs)
 
+
+def test_ritz_carlton_graph_clustering_cascade_and_reversibility():
+    """
+    Deterministic regression test for the Ritz-Carlton graph-clustering cascade:
+    1. A false pairwise merge (rest_0183 'restaurant' vs rest_0822 'cafe') occurs due to high score (0.9436).
+    2. A valid entity pair (rest_0182 vs rest_0183, score 0.9355) cannot merge because rest_0182 has
+       an explicit NON_MATCH / sub-venue conflict with rest_0822.
+    3. The clusterer must strictly prevent the contradictory 3-way merge and record a RejectedMerge.
+    4. When the false pairwise merge is reversed/corrected, the valid entity merges into a single cluster,
+       proving reversibility, explainability, and constraint enforcement.
+    """
+    r182 = Record(
+        record_id="rest_0182",
+        source_id="src_zagat",
+        entity_type=EntityType.ORGANIZATION,
+        raw_name="the ritz-carlton restaurant (atlanta)",
+        structured_attributes={"address": "181 peachtree st. ne", "city": "atlanta"},
+    )
+    r183 = Record(
+        record_id="rest_0183",
+        source_id="src_fodors",
+        entity_type=EntityType.ORGANIZATION,
+        raw_name="ritz-carlton restaurant",
+        structured_attributes={"address": "181 peachtree st.", "city": "atlanta"},
+    )
+    r822 = Record(
+        record_id="rest_0822",
+        source_id="src_fodors",
+        entity_type=EntityType.ORGANIZATION,
+        raw_name="ritz-carlton cafe (atlanta)",
+        structured_attributes={"address": "181 peachtree st.", "city": "atlanta"},
+    )
+
+    # Initial decisions: false merge between r183 and r822 has higher score than true duplicate pair
+    d_183_822 = MatchDecision(
+        candidate_pair_id="cp_rest_0183_rest_0822",
+        decision=DecisionType.MATCH,
+        score=0.9436,
+        threshold=0.72,
+        model_version="test_m7",
+        explanation_metadata={"pair": "cp_rest_0183_rest_0822"},
+    )
+    d_182_183 = MatchDecision(
+        candidate_pair_id="cp_rest_0182_rest_0183",
+        decision=DecisionType.MATCH,
+        score=0.9355,
+        threshold=0.72,
+        model_version="test_m7",
+        explanation_metadata={"pair": "cp_rest_0182_rest_0183"},
+    )
+    d_182_822 = MatchDecision(
+        candidate_pair_id="cp_rest_0182_rest_0822",
+        decision=DecisionType.NON_MATCH,
+        score=0.15,
+        threshold=0.35,
+        model_version="test_m7",
+        explanation_metadata={"pair": "cp_rest_0182_rest_0822"},
+    )
+
+    clusterer = ConstraintAwareClusterer(ClusteringPolicy())
+    initial_res = clusterer.cluster([r182, r183, r822], [d_183_822, d_182_183, d_182_822])
+
+    # 1. Contradictory cluster is NOT accepted; rest_0182 is kept out
+    assert len(initial_res.clusters) == 2
+    cluster_member_sets = [set(c.member_record_ids) for c in initial_res.clusters]
+    assert {"rest_0183", "rest_0822"} in cluster_member_sets
+    assert {"rest_0182"} in cluster_member_sets
+
+    # 2. Rejection reason is explicitly documented with evidence
+    assert len(initial_res.rejected_merges) >= 1
+    rej = initial_res.rejected_merges[0]
+    assert rej.candidate_pair_id == "cp_rest_0182_rest_0183" or "rest_0182" in rej.reason
+    assert "Explicit NON_MATCH" in rej.reason
+    assert "rest_0822" in rej.reason
+
+    # 3. Reversibility verification: human investigator reverses false match to NON_MATCH
+    d_183_822_corrected = MatchDecision(
+        candidate_pair_id="cp_rest_0183_rest_0822",
+        decision=DecisionType.NON_MATCH,
+        score=0.20,
+        threshold=0.35,
+        model_version="test_m7_human_adjudicated",
+        explanation_metadata={"pair": "cp_rest_0183_rest_0822", "adjudication": "rejected_venue_collision"},
+    )
+
+    corrected_res = clusterer.cluster([r182, r183, r822], [d_183_822_corrected, d_182_183, d_182_822])
+
+    # 4. Valid entity is now unified without contradiction
+    assert len(corrected_res.clusters) == 2
+    corrected_member_sets = [set(c.member_record_ids) for c in corrected_res.clusters]
+    assert {"rest_0182", "rest_0183"} in corrected_member_sets
+    assert {"rest_0822"} in corrected_member_sets
+    assert len(corrected_res.rejected_merges) == 0
