@@ -334,6 +334,7 @@ def test_ui_modal_and_js_phrase_contracts():
     assert "Vercel, sign in through Vercel Deployment Protection" in js
     assert "Backend authorization failed" in js
     assert "disable_auth=True" in open(os.path.join(base_dir, "api", "index.py"), encoding="utf-8").read()
+    assert "state.activeInvestigationId || (els.activeInvSelect && els.activeInvSelect.value)" in js
 
 
 def test_extremely_long_entity_ids_and_names_formatting_and_resilience():

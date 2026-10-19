@@ -1253,12 +1253,14 @@
   }
 
   function openClearInvestigationModal() {
-    if (!state.activeInvestigationId) {
+    const investigationId = state.activeInvestigationId || (els.activeInvSelect && els.activeInvSelect.value);
+    if (!investigationId) {
       showToast("No active investigation selected to clear", "warning");
       return;
     }
+    state.activeInvestigationId = investigationId;
     if (els.clearInvTargetId) {
-      els.clearInvTargetId.textContent = state.activeInvestigationId;
+      els.clearInvTargetId.textContent = investigationId;
     }
     if (els.inputClearInvName) {
       els.inputClearInvName.value = "";
@@ -1276,7 +1278,9 @@
 
   async function handleCommitClearInvestigation(e) {
     if (e && e.preventDefault) e.preventDefault();
-    if (!state.activeInvestigationId) return;
+    const investigationId = state.activeInvestigationId || (els.activeInvSelect && els.activeInvSelect.value);
+    if (!investigationId) return;
+    state.activeInvestigationId = investigationId;
 
     const confirmedName = els.inputClearInvName ? els.inputClearInvName.value.trim() : "";
     if (!confirmedName) {
@@ -1294,9 +1298,9 @@
     }
 
     try {
-      showToast(`Clearing investigation '${state.activeInvestigationId}'...`, "info");
+      showToast(`Clearing investigation '${investigationId}'...`, "info");
       await apiFetch(
-        `/api/v1/investigations/${encodeURIComponent(state.activeInvestigationId)}/clear`,
+        `/api/v1/investigations/${encodeURIComponent(investigationId)}/clear`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -1304,7 +1308,7 @@
         }
       );
 
-      showToast(`Investigation '${state.activeInvestigationId}' cleared successfully!`, "success");
+      showToast(`Investigation '${investigationId}' cleared successfully!`, "success");
       closeModal(els.modalClearInv);
       await loadInvestigationsList();
       await loadSystemStats();
